@@ -1,0 +1,1 @@
+pip install google-assistant-sdk pyttsx3 pyaudio
