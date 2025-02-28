@@ -1,2 +1,3 @@
 pip install pandas tensorflow qiskit
 pip install brainflow neurokit2 scipy
+pip install mpi4py tensorflow keras numpy
