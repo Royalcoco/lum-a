@@ -1,0 +1,70 @@
+import matplotlib.pyplot as plt
+import numpy as np
+
+# 1️⃣ Génération d'une fractale simple (Ensemble de Mandelbrot)
+def mandelbrot(c, max_iter=50):
+    z = c
+    for n in range(max_iter):
+        if abs(z) > 2:
+            return n
+        z = z*z + c
+    return max_iter
+
+# Définition de la grille
+width, height = 400, 400
+x_min, x_max = -2.0, 1.0
+y_min, y_max = -1.5, 1.5
+x_vals = np.linspace(x_min, x_max, width)
+y_vals = np.linspace(y_min, y_max, height)
+mandelbrot_set = np.zeros((width, height))
+
+for i, x in enumerate(x_vals):
+    for j, y in enumerate(y_vals):
+        mandelbrot_set[i, j] = mandelbrot(complex(x, y))
+
+# 2️⃣ Génération d'un automate cellulaire simple (Jeu de la Vie)
+def game_of_life(grid_size=20, iterations=10):
+    grid = np.random.choice([0, 1], size=(grid_size, grid_size))
+    history = [grid.copy()]
+
+    for _ in range(iterations):
+        new_grid = grid.copy()
+        for i in range(1, grid_size - 1):
+            for j in range(1, grid_size - 1):
+                neighbors = np.sum(grid[i-1:i+2, j-1:j+2]) - grid[i, j]
+                if grid[i, j] == 1 and (neighbors < 2 or neighbors > 3):
+                    new_grid[i, j] = 0
+                elif grid[i, j] == 0 and neighbors == 3:
+                    new_grid[i, j] = 1
+        grid = new_grid.copy()
+        history.append(grid.copy())
+    
+    return history
+
+# Génération d'un automate cellulaire
+game_life_steps = game_of_life()
+
+# 3️⃣ Génération d'un processus stochastique avec biais harmonique
+np.random.seed(42)
+random_walk = np.cumsum(np.random.choice([-1, 1], size=100))  # Marche aléatoire
+harmonic_bias = np.sin(np.linspace(0, 2*np.pi, 100)) * 5  # Biais harmonique
+adjusted_walk = random_walk + harmonic_bias  # Ajustement par harmonie
+
+# Affichage des résultats
+fig, axs = plt.subplots(1, 3, figsize=(18, 5))
+
+# Mandelbrot
+axs[0].imshow(mandelbrot_set.T, cmap="inferno", extent=[x_min, x_max, y_min, y_max])
+axs[0].set_title("Fractale de Mandelbrot (Chaos Auto-Organisé)")
+
+# Automate cellulaire (dernier état)
+axs[1].imshow(game_life_steps[-1], cmap="gray")
+axs[1].set_title("Jeu de la Vie (Évolution Indépendante)")
+
+# Processus stochastique avec biais
+axs[2].plot(random_walk, label="Marche Aléatoire")
+axs[2].plot(adjusted_walk, label="Biais Harmoniques", linestyle="dashed")
+axs[2].set_title("Processus Stochastique avec Filtrage Harmonique")
+axs[2].legend()
+
+plt.show()
