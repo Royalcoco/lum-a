@@ -149,3 +149,78 @@ lumea_com = LuméaOS_Communication()
 print(lumea_com.send_email("destinataire@example.com", "Test", "Ceci est un test."))  # Exemple d'email
 print(lumea_com.send_telegram("Bonjour depuis Luméa !"))  # Exemple Telegram
 print(lumea_com.send_whatsapp("Salut, ceci est un test WhatsApp !"))  # Exemple WhatsApp
+from textblob import TextBlob
+from deep_translator import GoogleTranslator
+
+class LuméaOS_Emotion:
+    def __init__(self):
+        self.translator = GoogleTranslator(source="auto", target="en")  # Traduction pour meilleure analyse
+
+    def analyze_emotion(self, text):
+        """Analyse l'émotion de l'utilisateur en traduisant et évaluant son message."""
+        translated_text = self.translator.translate(text)
+        analysis = TextBlob(translated_text)
+        sentiment = analysis.sentiment.polarity
+
+        if sentiment > 0.5:
+            return "positif"
+        elif sentiment < -0.5:
+            return "très négatif"
+        elif sentiment < 0:
+            return "négatif"
+        else:
+            return "neutre"
+
+    def respond_emotionally(self, user_input):
+        """Répond en fonction de l'émotion détectée."""
+        emotion = self.analyze_emotion(user_input)
+        
+        responses = {
+            "positif": "Je ressens une belle énergie en vous ! Continuez ainsi. 😊",
+            "neutre": "D'accord, je suis là pour discuter. 🧐",
+            "négatif": "Je ressens une baisse d'énergie... Vous voulez en parler ? 😟",
+            "très négatif": "Je suis là pour vous aider. Prenez soin de vous. ❤️"
+        }
+        
+        return responses.get(emotion, "Je ne suis pas sûr de comprendre, mais je suis là pour vous.")
+
+# Démarrer l'analyse émotionnelle
+lumea_emotion = LuméaOS_Emotion()
+print(lumea_emotion.respond_emotionally("Je suis très fatigué et triste aujourd'hui."))  # Exemple
+import datetime
+import schedule
+import time
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+
+class LuméaOS_Calendar:
+    def __init__(self):
+        self.scopes = ["https://www.googleapis.com/auth/calendar"]
+        self.service_account_file = "credentials.json"  # Remplace par ton fichier JSON de Google Cloud
+        self.creds = service_account.Credentials.from_service_account_file(self.service_account_file, scopes=self.scopes)
+        self.service = build("calendar", "v3", credentials=self.creds)
+
+    def add_event(self, summary, start_time, end_time):
+        """Ajoute un événement à Google Agenda."""
+        event = {
+            "summary": summary,
+            "start": {"dateTime": start_time, "timeZone": "Europe/Paris"},
+            "end": {"dateTime": end_time, "timeZone": "Europe/Paris"},
+        }
+        self.service.events().insert(calendarId="primary", body=event).execute()
+        return "Événement ajouté à Google Agenda."
+
+    def schedule_alarm(self, message, alarm_time):
+        """Planifie une alarme locale."""
+        schedule.every().day.at(alarm_time).do(self.alert_user, message)
+        while True:
+            schedule.run_pending()
+            time.sleep(1)
+
+    def alert_user(self, message):
+        """Affiche un rappel à l'utilisateur."""
+        print(f"🔔 Rappel : {message}")
+
+# Démarrer le gestionnaire de calendrier
+lumea_calendar = LuméaOS_Calendar()
+print(lumea_calendar.add_event("Réunion avec Paul", "2024-06-10T10:00:00", "2024-06-10T11:00:00"))  # Exemple de réunion
