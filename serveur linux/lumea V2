@@ -103,3 +103,49 @@ class LuméaOS_VoiceAssist:
 # Démarrer les assistants vocaux
 lumea_voice = LuméaOS_VoiceAssist()
 print(lumea_voice.activate_google_assistant())  # Exemple d'activation
+import requests
+import smtplib
+import telepot
+from twilio.rest import Client
+
+class LuméaOS_Communication:
+    def __init__(self):
+        self.telegram_token = "YOUR_TELEGRAM_BOT_TOKEN"
+        self.telegram_chat_id = "YOUR_CHAT_ID"
+        self.twilio_sid = "YOUR_TWILIO_SID"
+        self.twilio_auth_token = "YOUR_TWILIO_AUTH_TOKEN"
+        self.whatsapp_number = "whatsapp:+123456789"
+        self.email_sender = "your_email@gmail.com"
+        self.email_password = "your_email_password"
+
+    def send_telegram(self, message):
+        """Envoie un message sur Telegram."""
+        bot = telepot.Bot(self.telegram_token)
+        bot.sendMessage(self.telegram_chat_id, message)
+        return "Message envoyé sur Telegram."
+
+    def send_whatsapp(self, message):
+        """Envoie un message sur WhatsApp via Twilio."""
+        client = Client(self.twilio_sid, self.twilio_auth_token)
+        client.messages.create(
+            body=message,
+            from_="whatsapp:+14155238886",
+            to=self.whatsapp_number
+        )
+        return "Message envoyé sur WhatsApp."
+
+    def send_email(self, recipient, subject, body):
+        """Envoie un email."""
+        message = f"Subject: {subject}\n\n{body}"
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server.starttls()
+        server.login(self.email_sender, self.email_password)
+        server.sendmail(self.email_sender, recipient, message)
+        server.quit()
+        return "Email envoyé."
+
+# Démarrer les communications
+lumea_com = LuméaOS_Communication()
+print(lumea_com.send_email("destinataire@example.com", "Test", "Ceci est un test."))  # Exemple d'email
+print(lumea_com.send_telegram("Bonjour depuis Luméa !"))  # Exemple Telegram
+print(lumea_com.send_whatsapp("Salut, ceci est un test WhatsApp !"))  # Exemple WhatsApp
