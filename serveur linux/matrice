@@ -1,0 +1,42 @@
+# Recalcul correct de la fractale de Mandelbrot
+def mandelbrot(c, max_iter=50):
+    z = c
+    for n in range(max_iter):
+        if abs(z) > 2:
+            return n
+        z = z*z + c
+    return max_iter
+
+# Définition d'une nouvelle grille pour Mandelbrot
+width, height = 200, 200
+x_min, x_max = -2.0, 1.0
+y_min, y_max = -1.5, 1.5
+x_vals = np.linspace(x_min, x_max, width)
+y_vals = np.linspace(y_min, y_max, height)
+mandelbrot_set = np.array([[mandelbrot(complex(x, y)) for x in x_vals] for y in y_vals])
+
+# Ajustement de la taille pour correspondre aux signaux audio
+num_samples = len(t)
+
+# Génération d'un signal sonore basé sur la fractale de Mandelbrot
+mandelbrot_values = np.interp(np.linspace(0, 1, num_samples), np.linspace(0, 1, len(mandelbrot_set.flatten())), mandelbrot_set.flatten())
+mandelbrot_sound = np.sin(2 * np.pi * 440 * mandelbrot_values)
+
+# Génération du signal sonore basé sur l'automate cellulaire
+game_of_life_values = np.interp(np.linspace(0, 1, num_samples), np.linspace(0, 1, len(game_life_steps[-1].flatten())), game_life_steps[-1].flatten())
+game_of_life_sound = np.sin(2 * np.pi * 220 * game_of_life_values)
+
+# Génération du signal sonore basé sur le processus stochastique harmonisé
+stochastic_values = np.interp(np.linspace(0, 1, num_samples), np.linspace(0, 1, len(adjusted_walk)), adjusted_walk)
+stochastic_sound = np.sin(2 * np.pi * 330 * stochastic_values)
+
+# Fusion des trois signaux pour un effet sonore analytique profond
+final_signal = (mandelbrot_sound + game_of_life_sound + stochastic_sound) / 3
+final_signal = final_signal / np.max(np.abs(final_signal))  # Normalisation
+
+# Sauvegarde du fichier audio
+sound_filename = "/mnt/data/analytical_sound_effect.wav"
+write(sound_filename, sampling_rate, (final_signal * 32767).astype(np.int16))
+
+# Retour du fichier audio
+sound_filename
