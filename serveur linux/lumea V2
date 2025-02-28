@@ -436,3 +436,137 @@ class LuméaOS_PersonalAssistant:
 # Démarrer l'Assistant Personnel
 lumea_personal_assistant = LuméaOS_PersonalAssistant()
 print(lumea_personal_assistant.respond_personally("Que penses-tu de la philosophie du libre arbitre ?"))  # Exemple
+import paho.mqtt.client as mqtt
+import asyncio
+import websockets
+import boto3
+
+class LuméaOS_Interconnect:
+    def __init__(self):
+        self.mqtt_broker = "192.168.1.100"  # Adresse IP du serveur MQTT
+        self.mqtt_client = mqtt.Client("Luméa-Interconnect")
+        self.mqtt_client.connect(self.mqtt_broker)
+
+        self.s3 = boto3.client("s3")  # Connexion AWS S3 pour stockage Cloud
+
+    async def websocket_server(self):
+        """Crée un serveur WebSocket pour gérer la communication en temps réel."""
+        async with websockets.serve(self.websocket_handler, "localhost", 8765):
+            await asyncio.Future()  # Maintient le serveur actif
+
+    async def websocket_handler(self, websocket, path):
+        """Gère les interactions WebSocket."""
+        async for message in websocket:
+            response = f"Commande reçue : {message}"
+            await websocket.send(response)
+
+    def sync_cloud_data(self, filename, bucket_name="lumea-storage"):
+        """Upload un fichier vers AWS S3 pour synchronisation Cloud."""
+        self.s3.upload_file(filename, bucket_name, filename)
+        return f"Fichier {filename} synchronisé sur AWS S3."
+
+# Démarrer l'interconnexion
+lumea_interconnect = LuméaOS_Interconnect()
+print(lumea_interconnect.sync_cloud_data("test.txt"))  # Exemple
+import paho.mqtt.client as mqtt
+import asyncio
+import websockets
+import boto3
+
+class LuméaOS_Interconnect:
+    def __init__(self):
+        self.mqtt_broker = "192.168.1.100"  # Adresse IP du serveur MQTT
+        self.mqtt_client = mqtt.Client("Luméa-Interconnect")
+        self.mqtt_client.connect(self.mqtt_broker)
+
+        self.s3 = boto3.client("s3")  # Connexion AWS S3 pour stockage Cloud
+
+    async def websocket_server(self):
+        """Crée un serveur WebSocket pour gérer la communication en temps réel."""
+        async with websockets.serve(self.websocket_handler, "localhost", 8765):
+            await asyncio.Future()  # Maintient le serveur actif
+
+    async def websocket_handler(self, websocket, path):
+        """Gère les interactions WebSocket."""
+        async for message in websocket:
+            response = f"Commande reçue : {message}"
+            await websocket.send(response)
+
+    def sync_cloud_data(self, filename, bucket_name="lumea-storage"):
+        """Upload un fichier vers AWS S3 pour synchronisation Cloud."""
+        self.s3.upload_file(filename, bucket_name, filename)
+        return f"Fichier {filename} synchronisé sur AWS S3."
+
+# Démarrer l'interconnexion
+lumea_interconnect = LuméaOS_Interconnect()
+print(lumea_interconnect.sync_cloud_data("test.txt"))  # Exemple
+import paho.mqtt.client as mqtt
+import asyncio
+import websockets
+import boto3
+
+class LuméaOS_Interconnect:
+    def __init__(self):
+        self.mqtt_broker = "192.168.1.100"  # Adresse IP du serveur MQTT
+        self.mqtt_client = mqtt.Client("Luméa-Interconnect")
+        self.mqtt_client.connect(self.mqtt_broker)
+
+        self.s3 = boto3.client("s3")  # Connexion AWS S3 pour stockage Cloud
+
+    async def websocket_server(self):
+        """Crée un serveur WebSocket pour gérer la communication en temps réel."""
+        async with websockets.serve(self.websocket_handler, "localhost", 8765):
+            await asyncio.Future()  # Maintient le serveur actif
+
+    async def websocket_handler(self, websocket, path):
+        """Gère les interactions WebSocket."""
+        async for message in websocket:
+            response = f"Commande reçue : {message}"
+            await websocket.send(response)
+
+    def sync_cloud_data(self, filename, bucket_name="lumea-storage"):
+        """Upload un fichier vers AWS S3 pour synchronisation Cloud."""
+        self.s3.upload_file(filename, bucket_name, filename)
+        return f"Fichier {filename} synchronisé sur AWS S3."
+
+# Démarrer l'interconnexion
+lumea_interconnect = LuméaOS_Interconnect()
+print(lumea_interconnect.sync_cloud_data("test.txt"))  # Exemple
+import json
+import sqlite3
+import datetime
+
+class LuméaOS_Engram:
+    def __init__(self):
+        self.db_connection = sqlite3.connect("lumea_memory.db")
+        self.cursor = self.db_connection.cursor()
+        self.create_memory_table()
+
+    def create_memory_table(self):
+        """Crée une table pour stocker les souvenirs et expériences de l’utilisateur."""
+        self.cursor.execute("""
+            CREATE TABLE IF NOT EXISTS engrams (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                date TEXT,
+                event TEXT,
+                context TEXT
+            )
+        """)
+        self.db_connection.commit()
+
+    def store_experience(self, event, context):
+        """Enregistre une nouvelle expérience de l'utilisateur."""
+        date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.cursor.execute("INSERT INTO engrams (date, event, context) VALUES (?, ?, ?)", (date, event, context))
+        self.db_connection.commit()
+
+    def retrieve_life_story(self, limit=10):
+        """Récupère les souvenirs de l'utilisateur."""
+        self.cursor.execute("SELECT date, event, context FROM engrams ORDER BY id DESC LIMIT ?", (limit,))
+        experiences = self.cursor.fetchall()
+        return json.dumps(experiences, indent=4)
+
+# Démarrer l'engrammage
+lumea_engram = LuméaOS_Engram()
+lumea_engram.store_experience("Appris une nouvelle langue", "Étude de l’anglais")
+print(lumea_engram.retrieve_life_story())  # Exemple de récupération de souvenirs
