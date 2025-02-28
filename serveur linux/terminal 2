@@ -1,0 +1,1 @@
+curl -X POST http://localhost:5000/interaction -H "Content-Type: application/json" -d '{"utilisateur": "Utilisateur_X", "message": "Les lois de l’univers"}'
