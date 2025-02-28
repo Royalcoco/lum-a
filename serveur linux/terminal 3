@@ -1,0 +1,1 @@
+curl -X POST http://localhost:5000/analyser -H "Content-Type: application/json" -d '{"utilisateur": "Utilisateur_X", "question": "Que sont les lois de l’univers ?"}'
