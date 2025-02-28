@@ -3,3 +3,4 @@ pip install tensorflow keras numpy
 pip install pyserial pybullet opencv-python
 pip install docker paramiko
 pip install biopython neuralnet keras numpy
+pip install qiskit numpy scipy
