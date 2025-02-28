@@ -346,3 +346,93 @@ class LuméaOS_Cloud:
 lumea_cloud = LuméaOS_Cloud()
 print(lumea_cloud.upload_to_drive("test.txt"))  # Exemple : upload sur Google Drive
 print(lumea_cloud.upload_to_dropbox("test.txt", "/test.txt"))  # Exemple : upload sur Dropbox
+import openai
+import moviepy.editor as mp
+import os
+
+class LuméaOS_GenerativeAI:
+    def __init__(self):
+        self.api_key = "YOUR_OPENAI_API_KEY"
+
+    def generate_text(self, prompt):
+        """Génère un texte basé sur une demande."""
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}]
+        )
+        return response["choices"][0]["message"]["content"]
+
+    def generate_image(self, prompt, filename="image.png"):
+        """Génère une image avec DALL·E et l'enregistre."""
+        response = openai.Image.create(prompt=prompt, model="dall-e-2")
+        image_url = response["data"][0]["url"]
+        os.system(f"wget {image_url} -O {filename}")
+        return f"Image générée et enregistrée sous {filename}."
+
+    def generate_video(self, text, output_filename="video.mp4"):
+        """Crée une vidéo simple avec du texte et une musique de fond."""
+        clip = mp.TextClip(text, fontsize=50, color="white", size=(1280, 720))
+        clip = clip.set_duration(10)
+        audio = mp.AudioFileClip("background_music.mp3")  # Assurez-vous d'avoir un fichier audio
+        final_clip = clip.set_audio(audio)
+        final_clip.write_videofile(output_filename, fps=24)
+        return f"Vidéo générée et enregistrée sous {output_filename}."
+
+# Démarrer l'IA Générative
+lumea_gen_ai = LuméaOS_GenerativeAI()
+print(lumea_gen_ai.generate_text("Écris une courte histoire de science-fiction."))  # Exemple de texte généré
+print(lumea_gen_ai.generate_image("Un paysage futuriste avec des robots."))  # Exemple d'image générée
+import sqlite3
+import datetime
+
+class LuméaOS_PersonalAssistant:
+    def __init__(self):
+        self.db_connection = sqlite3.connect("lumea_memory.db")
+        self.cursor = self.db_connection.cursor()
+        self.create_memory_table()
+
+    def create_memory_table(self):
+        """Crée une table pour stocker les interactions utilisateur."""
+        self.cursor.execute("""
+            CREATE TABLE IF NOT EXISTS interactions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                date TEXT,
+                user_input TEXT,
+                assistant_response TEXT
+            )
+        """)
+        self.db_connection.commit()
+
+    def save_interaction(self, user_input, assistant_response):
+        """Stocke une interaction utilisateur dans la base de données."""
+        date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.cursor.execute("INSERT INTO interactions (date, user_input, assistant_response) VALUES (?, ?, ?)",
+                            (date, user_input, assistant_response))
+        self.db_connection.commit()
+
+    def get_last_interactions(self, limit=5):
+        """Récupère les dernières interactions pour améliorer la contextualisation."""
+        self.cursor.execute("SELECT user_input, assistant_response FROM interactions ORDER BY id DESC LIMIT ?", (limit,))
+        return self.cursor.fetchall()
+
+    def respond_personally(self, user_input):
+        """Génère une réponse en tenant compte des interactions passées."""
+        interactions = self.get_last_interactions()
+        history_context = " ".join([f"{u}: {r}" for u, r in interactions])
+
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "Tu es un assistant personnel évolutif."},
+                {"role": "user", "content": history_context},
+                {"role": "user", "content": user_input}
+            ]
+        )
+
+        ai_response = response["choices"][0]["message"]["content"]
+        self.save_interaction(user_input, ai_response)
+        return ai_response
+
+# Démarrer l'Assistant Personnel
+lumea_personal_assistant = LuméaOS_PersonalAssistant()
+print(lumea_personal_assistant.respond_personally("Que penses-tu de la philosophie du libre arbitre ?"))  # Exemple
