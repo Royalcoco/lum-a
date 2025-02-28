@@ -1,0 +1,105 @@
+import requests
+import json
+import paho.mqtt.client as mqtt
+from phue import Bridge  # Pour contrôler les lumières Philips Hue
+
+class LuméaOS_Domotique:
+    def __init__(self):
+        # Configuration pour MQTT (si utilisé pour les objets connectés)
+        self.mqtt_broker = "192.168.1.100"  # Adresse IP du serveur MQTT
+        self.mqtt_client = mqtt.Client("LuméaDomotique")
+        self.mqtt_client.connect(self.mqtt_broker)
+
+        # Configuration des lumières Philips Hue
+        self.hue_bridge_ip = "192.168.1.200"  # Adresse IP du pont Hue
+        self.bridge = Bridge(self.hue_bridge_ip)
+        self.bridge.connect()
+
+    def control_light(self, action):
+        """Allumer ou éteindre une lumière intelligente."""
+        if action == "allumer":
+            self.bridge.set_light(1, "on", True)
+            return "Lumière allumée."
+        elif action == "éteindre":
+            self.bridge.set_light(1, "on", False)
+            return "Lumière éteinte."
+        else:
+            return "Action inconnue."
+
+    def control_device(self, device, action):
+        """Envoyer des commandes aux appareils connectés via MQTT."""
+        topic = f"home/{device}/control"
+        if action in ["on", "off"]:
+            self.mqtt_client.publish(topic, action)
+            return f"Commande envoyée à {device} : {action}"
+        return "Action non reconnue."
+
+# Démarrer la gestion domotique
+lumea_domotique = LuméaOS_Domotique()
+print(lumea_domotique.control_light("allumer"))  # Exemple : allumer la lumière
+print(lumea_domotique.control_device("ventilateur", "on"))  # Exemple : allumer un ventilateur connecté
+import openai
+
+class LuméaOS_GPT:
+    def __init__(self):
+        self.api_key = "YOUR_OPENAI_API_KEY"  # Remplace par ta clé API OpenAI
+
+    def generate_response(self, user_input):
+        """Génère une réponse intelligente en utilisant GPT."""
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": user_input}]
+        )
+        return response["choices"][0]["message"]["content"]
+
+# Démarrer le chatbot IA avancé
+lumea_gpt = LuméaOS_GPT()
+print(lumea_gpt.generate_response("Quelle est la signification de la vie ?"))  # Exemple de test
+import os
+import pyttsx3
+import speech_recognition as sr
+
+class LuméaOS_VoiceAssist:
+    def __init__(self):
+        self.voice_engine = pyttsx3.init()
+
+    def speak(self, text):
+        """Fait parler Luméa."""
+        self.voice_engine.say(text)
+        self.voice_engine.runAndWait()
+
+    def listen_command(self):
+        """Écoute et interprète une commande vocale."""
+        recognizer = sr.Recognizer()
+        with sr.Microphone() as source:
+            self.speak("Je vous écoute.")
+            recognizer.adjust_for_ambient_noise(source)
+            try:
+                audio = recognizer.listen(source)
+                command = recognizer.recognize_google(audio, language="fr-FR")
+                return command
+            except sr.UnknownValueError:
+                self.speak("Je n'ai pas compris.")
+                return None
+            except sr.RequestError:
+                self.speak("Erreur de connexion.")
+                return None
+
+    def activate_google_assistant(self):
+        """Active Google Assistant via la commande shell."""
+        os.system("start google-assistant-sdk")
+        return "Google Assistant activé."
+
+    def activate_alexa(self):
+        """Active Alexa."""
+        os.system("start alexa-voice-service")
+        return "Alexa activée."
+
+    def activate_siri(self):
+        """Active Siri."""
+        os.system("start siri-command")
+        return "Siri activé."
+
+# Démarrer les assistants vocaux
+lumea_voice = LuméaOS_VoiceAssist()
+print(lumea_voice.activate_google_assistant())  # Exemple d'activation
