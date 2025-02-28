@@ -1,0 +1,2 @@
+pip install brainflow neurokit2
+pip install tensorflow keras numpy
