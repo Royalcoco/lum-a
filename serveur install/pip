@@ -1,0 +1,1 @@
+pip install speechrecognition pyttsx3 scikit-learn requests textblob
