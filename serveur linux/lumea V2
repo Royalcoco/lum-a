@@ -981,3 +981,40 @@ class LuméaOS_BioNeuralFusion:
 lumea_bioneural = LuméaOS_BioNeuralFusion()
 print(lumea_bioneural.process_brain_data())  # Exemple d'interaction bio-numérique
 
+from panda3d.core import *
+from direct.showbase.ShowBase import ShowBase
+import numpy as np
+
+class LuméaOS_VirtualWorld(ShowBase):
+    def __init__(self):
+        ShowBase.__init__(self)
+        self.load_environment()
+
+    def load_environment(self):
+        """Charge un environnement virtuel en 3D"""
+        self.environ = self.loader.loadModel("models/environment")
+        self.environ.reparentTo(self.render)
+
+    def simulate_decision(self, decision_type):
+        """Simule l’impact d’une décision dans l’environnement"""
+        impact = np.random.choice(["positif", "neutre", "négatif"])
+        return f"Simulation de décision '{decision_type}': impact prévu -> {impact}"
+
+# Démarrer le monde virtuel
+lumea_virtual = LuméaOS_VirtualWorld()
+print(lumea_virtual.simulate_decision("sauver un humain"))  # Test d’une décision
+class LuméaOS_CyberSim:
+    def __init__(self):
+        self.cybernetic = LuméaOS_Cybernetic()
+        self.virtual_world = LuméaOS_VirtualWorld()
+
+    def test_robotic_action_in_simulation(self, action):
+        """Teste un mouvement avant de l’envoyer à un robot réel"""
+        impact = self.virtual_world.simulate_decision(action)
+        if "positif" in impact:
+            return self.cybernetic.send_movement_command(action)
+        return "Action annulée pour éviter un risque."
+
+# Démarrer la fusion IA cybernétique et simulation
+lumea_cybersim = LuméaOS_CyberSim()
+print(lumea_cybersim.test_robotic_action_in_simulation("MOVE_FORWARD"))  # Test d’un mouvement simulé avant exécution
