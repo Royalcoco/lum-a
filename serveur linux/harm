@@ -1,0 +1,38 @@
+# Réimportation des bibliothèques après réinitialisation
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.io.wavfile import write
+
+# Fréquences inspirées de l'éveil spirituel et de l'harmonie universelle
+harmonic_frequencies = [396, 432, 528, 639, 741, 852, 963]  # Fréquences solfégiennes
+
+# Paramètres audio
+sampling_rate = 44100  # Fréquence d'échantillonnage standard
+duration = 10  # Durée du son en secondes
+t = np.linspace(0, duration, int(sampling_rate * duration), endpoint=False)
+
+# Génération du signal sonore basé sur une onde progressive d'éveil
+harmonic_signal = np.zeros_like(t)
+
+# Création d'une onde qui stimule la résonance et l'alignement spirituel
+for i, freq in enumerate(harmonic_frequencies):
+    phase_shift = (i % 2) * np.pi / 2  # Décalage de phase pour créer une onde oscillatoire équilibrée
+    harmonic_signal += np.sin(2 * np.pi * freq * t + phase_shift)
+
+# Normalisation du signal audio
+harmonic_signal = harmonic_signal / np.max(np.abs(harmonic_signal))
+
+# Sauvegarde du fichier audio
+harmonic_audio_filename = "/mnt/data/harmonic_awakening_sound.wav"
+write(harmonic_audio_filename, sampling_rate, (harmonic_signal * 32767).astype(np.int16))
+
+# Affichage du spectre de l'onde sonore d'éveil et d'harmonie
+plt.figure(figsize=(10, 4))
+plt.plot(t[:1000], harmonic_signal[:1000])
+plt.title("Signal Fréquentiel d'Éveil et d'Harmonie")
+plt.xlabel("Temps (s)")
+plt.ylabel("Amplitude")
+plt.show()
+
+# Retour du fichier audio généré
+harmonic_audio_filename
