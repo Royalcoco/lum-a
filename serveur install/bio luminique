@@ -1,2 +1,3 @@
 pip install brainflow neurokit2
 pip install tensorflow keras numpy
+pip install pyserial pybullet opencv-python
