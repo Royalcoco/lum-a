@@ -256,3 +256,93 @@ class LuméaOS_Music:
 # Démarrer la musique thérapeutique
 lumea_music = LuméaOS_Music()
 print(lumea_music.play_sound("relaxation"))  # Exemple : musique relaxante
+import cv2
+import face_recognition
+import os
+import speech_recognition as sr
+from cryptography.fernet import Fernet
+
+class LuméaOS_Security:
+    def __init__(self):
+        # Génération de la clé de chiffrement
+        self.key = Fernet.generate_key()
+        self.cipher = Fernet(self.key)
+        self.known_faces = {}  # Stockage des visages reconnus
+
+    def encrypt_message(self, message):
+        """Chiffre un message avec la clé de sécurité."""
+        return self.cipher.encrypt(message.encode())
+
+    def decrypt_message(self, encrypted_message):
+        """Déchiffre un message avec la clé de sécurité."""
+        return self.cipher.decrypt(encrypted_message).decode()
+
+    def face_authentication(self):
+        """Vérifie l'identité par reconnaissance faciale."""
+        video_capture = cv2.VideoCapture(0)
+        ret, frame = video_capture.read()
+        video_capture.release()
+
+        if not ret:
+            return "Erreur lors de la capture vidéo."
+
+        face_locations = face_recognition.face_locations(frame)
+        if not face_locations:
+            return "Aucun visage détecté."
+
+        face_encodings = face_recognition.face_encodings(frame, face_locations)
+        for face_encoding in face_encodings:
+            for name, known_encoding in self.known_faces.items():
+                if face_recognition.compare_faces([known_encoding], face_encoding)[0]:
+                    return f"Accès autorisé pour {name}."
+        
+        return "Accès refusé."
+
+    def voice_authentication(self):
+        """Vérifie l'identité par reconnaissance vocale."""
+        recognizer = sr.Recognizer()
+        with sr.Microphone() as source:
+            print("Dites votre mot de passe vocal...")
+            audio = recognizer.listen(source)
+
+            try:
+                voice_text = recognizer.recognize_google(audio, language="fr-FR")
+                return f"Mot de passe reconnu : {voice_text}"
+            except sr.UnknownValueError:
+                return "Reconnaissance vocale échouée."
+            except sr.RequestError:
+                return "Erreur de connexion à l'API vocale."
+
+# Démarrer la sécurité
+lumea_security = LuméaOS_Security()
+print(lumea_security.face_authentication())  # Test de reconnaissance faciale
+print(lumea_security.voice_authentication())  # Test de reconnaissance vocale
+import dropbox
+from googleapiclient.discovery import build
+from google.oauth2 import service_account
+
+class LuméaOS_Cloud:
+    def __init__(self):
+        self.google_creds = service_account.Credentials.from_service_account_file("credentials.json")
+        self.drive_service = build("drive", "v3", credentials=self.google_creds)
+
+        self.dropbox_access_token = "YOUR_DROPBOX_ACCESS_TOKEN"
+        self.dropbox_client = dropbox.Dropbox(self.dropbox_access_token)
+
+    def upload_to_drive(self, file_path):
+        """Upload un fichier sur Google Drive."""
+        file_metadata = {"name": file_path}
+        media = googleapiclient.http.MediaFileUpload(file_path, resumable=True)
+        file = self.drive_service.files().create(body=file_metadata, media_body=media, fields="id").execute()
+        return f"Fichier uploadé sur Google Drive : {file.get('id')}"
+
+    def upload_to_dropbox(self, file_path, destination_path):
+        """Upload un fichier sur Dropbox."""
+        with open(file_path, "rb") as f:
+            self.dropbox_client.files_upload(f.read(), destination_path)
+        return f"Fichier uploadé sur Dropbox : {destination_path}"
+
+# Démarrer l'intégration cloud
+lumea_cloud = LuméaOS_Cloud()
+print(lumea_cloud.upload_to_drive("test.txt"))  # Exemple : upload sur Google Drive
+print(lumea_cloud.upload_to_dropbox("test.txt", "/test.txt"))  # Exemple : upload sur Dropbox
