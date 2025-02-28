@@ -899,3 +899,40 @@ class LuméaOS_QuantumSimulation:
 # Démarrer la simulation quantique
 lumea_quantum = LuméaOS_QuantumSimulation()
 print(lumea_quantum.run_quantum_experiment())  # Exécution d'une simulation quantique
+import brainflow
+from brainflow.board_shim import BoardShim, BrainFlowInputParams
+import neurokit2 as nk
+
+class LuméaOS_BioAI:
+    def __init__(self):
+        """Initialisation des paramètres du capteur EEG"""
+        self.params = BrainFlowInputParams()
+        self.params.serial_port = "COM3"  # Remplace par le bon port série
+        self.board = BoardShim(2, self.params)  # Type 2 : OpenBCI Ganglion Board
+
+    def read_brain_signals(self, duration=5):
+        """Lit les signaux cérébraux sur une période donnée"""
+        self.board.prepare_session()
+        self.board.start_stream()
+        data = self.board.get_board_data()
+        self.board.stop_stream()
+        self.board.release_session()
+
+        # Analyse des signaux cérébraux
+        eeg_data = data[1, :]  # Extraction des signaux EEG
+        features = nk.eeg_process(eeg_data, sampling_rate=250)
+        return features
+
+    def interpret_thoughts(self, signal_data):
+        """Tente de relier les signaux EEG à des états mentaux"""
+        if signal_data["Alpha"] > signal_data["Beta"]:
+            return "État méditatif détecté."
+        elif signal_data["Beta"] > signal_data["Alpha"]:
+            return "État de concentration intense détecté."
+        return "État cérébral neutre."
+
+# Démarrer l'analyse bio-informatique
+lumea_bio = LuméaOS_BioAI()
+brain_signals = lumea_bio.read_brain_signals()
+print(lumea_bio.interpret_thoughts(brain_signals))  # Exemple d'interprétation cérébrale
+
