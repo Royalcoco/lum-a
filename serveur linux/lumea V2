@@ -224,3 +224,35 @@ class LuméaOS_Calendar:
 # Démarrer le gestionnaire de calendrier
 lumea_calendar = LuméaOS_Calendar()
 print(lumea_calendar.add_event("Réunion avec Paul", "2024-06-10T10:00:00", "2024-06-10T11:00:00"))  # Exemple de réunion
+import numpy as np
+import sounddevice as sd
+import time
+
+class LuméaOS_Music:
+    def __init__(self):
+        self.frequencies = {
+            "relaxation": 432,  # Fréquence naturelle pour la détente
+            "concentration": 528,  # Fréquence d'harmonisation et clarté mentale
+            "énergie": 639,  # Fréquence pour motivation et bien-être
+            "sommeil": 852  # Fréquence utilisée pour calmer l'esprit
+        }
+
+    def generate_wave(self, freq, duration=10, sample_rate=44100):
+        """Génère une onde sonore d'une fréquence donnée."""
+        t = np.linspace(0, duration, int(sample_rate * duration), endpoint=False)
+        wave = np.sin(2 * np.pi * freq * t)
+        return wave
+
+    def play_sound(self, mood):
+        """Joue un son basé sur l'humeur détectée."""
+        freq = self.frequencies.get(mood, 432)  # Défaut à 432Hz si non reconnu
+        wave = self.generate_wave(freq)
+        print(f"🎵 Lecture d'une fréquence {freq} Hz pour {mood}...")
+        sd.play(wave, samplerate=44100)
+        time.sleep(10)  # Joue pendant 10 secondes
+        sd.stop()
+        return f"Son thérapeutique {freq}Hz joué pour {mood}."
+
+# Démarrer la musique thérapeutique
+lumea_music = LuméaOS_Music()
+print(lumea_music.play_sound("relaxation"))  # Exemple : musique relaxante
