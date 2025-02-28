@@ -1,0 +1,24 @@
+from scipy.io.wavfile import write
+
+# Paramètres audio
+sampling_rate = 44100  # Fréquence d'échantillonnage standard
+duration = 5  # Durée en secondes
+
+# Génération d'une onde sonore basée sur les trois modèles mathématiques
+t = np.linspace(0, duration, int(sampling_rate * duration), endpoint=False)
+
+# Création du signal sonore basé sur la fractale, l'automate cellulaire et la marche harmonique
+mandelbrot_sound = np.sin(2 * np.pi * 440 * np.sin(2 * np.pi * (mandelbrot_set[100, :height] / 50) * t))[:len(t)]
+game_of_life_sound = np.sin(2 * np.pi * 220 * np.sin(2 * np.pi * (game_life_steps[-1][10, :] / 2) * t))[:len(t)]
+stochastic_sound = np.sin(2 * np.pi * 330 * np.sin(2 * np.pi * (adjusted_walk[:len(t)] / 50) * t))
+
+# Fusion des signaux pour une analyse profonde
+final_signal = (mandelbrot_sound + game_of_life_sound + stochastic_sound) / 3
+final_signal = final_signal / np.max(np.abs(final_signal))  # Normalisation
+
+# Sauvegarde du fichier audio
+sound_filename = "/mnt/data/analytical_sound_effect.wav"
+write(sound_filename, sampling_rate, (final_signal * 32767).astype(np.int16))
+
+# Retour du fichier audio
+sound_filename
