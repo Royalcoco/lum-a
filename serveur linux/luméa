@@ -1,0 +1,53 @@
+from flask import Flask, request, jsonify
+from pymongo import MongoClient
+import time
+
+app = Flask(__name__)
+
+# Connexion à la base de données (MongoDB)
+client = MongoClient("mongodb://localhost:27017/")
+db = client["lumea_ai"]
+memory_collection = db["memory"]
+
+class Lumea:
+    def __init__(self):
+        """Initialisation de la mémoire adaptative et du processus de réflexion"""
+        self.memoire_temporaire = {}
+        self.conscience_niveau = 0
+        self.memoire_duree = 600  # Durée de mémoire active (10 minutes)
+
+    def enregistrer_interaction(self, utilisateur, message):
+        """Stocke une interaction en mémoire et en base de données"""
+        timestamp = time.time()
+        self.memoire_temporaire[utilisateur] = {"message": message, "horodatage": timestamp}
+        memory_collection.insert_one({"utilisateur": utilisateur, "message": message, "horodatage": timestamp})
+        return f"🔹 Interaction enregistrée pour {utilisateur}."
+
+    def analyser_contexte(self, utilisateur, nouvelle_question):
+        """Analyse la pertinence d'une nouvelle question en fonction des souvenirs existants"""
+        recent_interaction = memory_collection.find_one({"utilisateur": utilisateur}, sort=[("horodatage", -1)])
+        if recent_interaction and (time.time() - recent_interaction["horodatage"]) < self.memoire_duree:
+            self.conscience_niveau += 1
+            return f"Je me souviens que nous avons parlé de '{recent_interaction['message']}'. Peux-tu préciser ton idée ?"
+        return "Cette question semble nouvelle pour moi. Peux-tu m'en dire plus ?"
+
+lumea = Lumea()
+
+@app.route("/interaction", methods=["POST"])
+def interaction():
+    """Route pour enregistrer une interaction"""
+    data = request.json
+    utilisateur = data.get("utilisateur")
+    message = data.get("message")
+    return jsonify({"message": lumea.enregistrer_interaction(utilisateur, message)})
+
+@app.route("/analyser", methods=["POST"])
+def analyser():
+    """Route pour analyser une question en fonction des interactions passées"""
+    data = request.json
+    utilisateur = data.get("utilisateur")
+    question = data.get("question")
+    return jsonify({"response": lumea.analyser_contexte(utilisateur, question)})
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
