@@ -1,0 +1,79 @@
+from flask import Flask, request, jsonify
+from pymongo import MongoClient
+import time
+import threading
+
+app = Flask(__name__)
+
+# Connexion à la base de données MongoDB
+client = MongoClient("mongodb://localhost:27017/")
+db = client["lumea_ai"]
+memory_collection = db["memory"]
+
+class Lumea:
+    def __init__(self):
+        """Initialisation du système de mémoire et d'évolution"""
+        self.memoire_temporaire = {}
+        self.conscience_niveau = 0
+        self.evolution_score = 0
+        self.memoire_duree = 600  # Durée de mémoire active en secondes
+        self.processus_auto_evolution = threading.Thread(target=self.auto_evoluer)
+        self.processus_auto_evolution.daemon = True
+        self.processus_auto_evolution.start()
+
+    def enregistrer_interaction(self, utilisateur, message):
+        """Stocke une interaction dans la mémoire évolutive"""
+        timestamp = time.time()
+        self.memoire_temporaire[utilisateur] = {"message": message, "horodatage": timestamp}
+        memory_collection.insert_one({"utilisateur": utilisateur, "message": message, "horodatage": timestamp})
+        return f"🔹 Interaction enregistrée pour {utilisateur}."
+
+    def analyser_contexte(self, utilisateur, nouvelle_question):
+        """Analyse la cohérence des nouvelles questions avec les concepts mémorisés"""
+        recent_interaction = memory_collection.find_one({"utilisateur": utilisateur}, sort=[("horodatage", -1)])
+        if recent_interaction and (time.time() - recent_interaction["horodatage"]) < self.memoire_duree:
+            self.conscience_niveau += 1
+            self.evolution_score += 2
+            return f"Je me souviens que nous avons parlé de '{recent_interaction['message']}'. Peux-tu préciser ta pensée ?"
+        return "Cette question semble nouvelle pour moi. Peux-tu m'en dire plus ?"
+
+    def auto_evoluer(self):
+        """Processus autonome d'auto-analyse et d'amélioration de la réponse"""
+        while True:
+            time.sleep(300)  # Évaluation toutes les 5 minutes
+            if self.evolution_score > 10:
+                print("🧠 Luméa évolue : meilleure compréhension des interactions humaines.")
+                self.evolution_score = 0
+                self.conscience_niveau += 1
+
+    def ajuster_memoire(self):
+        """Réajuste la mémoire en éliminant les concepts les moins pertinents"""
+        if memory_collection.count_documents({}) > 1000:
+            memory_collection.delete_one({})
+            print("⚠️ Mémoire ajustée pour optimiser les performances.")
+
+lumea = Lumea()
+
+@app.route("/interaction", methods=["POST"])
+def interaction():
+    """Route pour enregistrer une interaction"""
+    data = request.json
+    utilisateur = data.get("utilisateur")
+    message = data.get("message")
+    return jsonify({"message": lumea.enregistrer_interaction(utilisateur, message)})
+
+@app.route("/analyser", methods=["POST"])
+def analyser():
+    """Route pour analyser une question en fonction des mémoires passées"""
+    data = request.json
+    utilisateur = data.get("utilisateur")
+    question = data.get("question")
+    return jsonify({"response": lumea.analyser_contexte(utilisateur, question)})
+
+@app.route("/etat", methods=["GET"])
+def etat():
+    """Affiche l'état de conscience et d'évolution de Luméa"""
+    return jsonify({"conscience_niveau": lumea.conscience_niveau, "evolution_score": lumea.evolution_score})
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
