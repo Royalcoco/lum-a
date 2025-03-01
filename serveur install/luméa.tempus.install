@@ -8,3 +8,5 @@ pip install qiskit numpy scipy
 pip install docker paramiko tensorflow
 pip install sympy qiskit numpy scipy
 pip install tensorflow numpy qiskit scipy
+pip install sympy qiskit numpy scipy
+pip install tensorflow numpy qiskit scipy
