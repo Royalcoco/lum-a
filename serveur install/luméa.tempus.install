@@ -4,3 +4,4 @@ pip install mpi4py tensorflow keras numpy
 pip install sympy scipy qiskit numpy
 pip install tensorflow scipy pandas
 pip install tensorflow numpy scipy qiskit
+pip install qiskit numpy scipy
