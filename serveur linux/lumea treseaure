@@ -193,3 +193,50 @@ const VerifyAvatar = ({ walletAddress }) => {
 };
 
 export default VerifyAvatar;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+contract StakingPool is Ownable {
+    IERC20 public cosmoCoin;
+    uint256 public rewardRate = 100; // Récompenses par token
+    mapping(address => uint256) public stakes;
+    mapping(address => uint256) public lastClaimed;
+
+    constructor(address _cosmoCoin) {
+        cosmoCoin = IERC20(_cosmoCoin);
+    }
+
+    function stake(uint256 amount) external {
+        require(amount > 0, "Amount must be greater than 0");
+        cosmoCoin.transferFrom(msg.sender, address(this), amount);
+        stakes[msg.sender] += amount;
+        lastClaimed[msg.sender] = block.timestamp;
+    }
+
+    function claimRewards() external {
+        uint256 stakedTime = block.timestamp - lastClaimed[msg.sender];
+        uint256 reward = (stakes[msg.sender] * stakedTime * rewardRate) / (30 days);
+        lastClaimed[msg.sender] = block.timestamp;
+        cosmoCoin.transfer(msg.sender, reward);
+    }
+
+    function unstake(uint256 amount) external {
+        require(stakes[msg.sender] >= amount, "Not enough staked");
+        stakes[msg.sender] -= amount;
+        cosmoCoin.transfer(msg.sender, amount);
+    }
+}
+export const stakeTokens = async (amount, account) => {
+    await stakingContract.methods.stake(amount).send({ from: account });
+};
+
+export const claimRewards = async (account) => {
+    await stakingContract.methods.claimRewards().send({ from: account });
+};
+
+export const unstakeTokens = async (amount, account) => {
+    await stakingContract.methods.unstake(amount).send({ from: account });
+};
