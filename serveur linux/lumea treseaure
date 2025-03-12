@@ -1,0 +1,33 @@
+import time
+import math
+
+TOTAL_SUPPLY = 19_000_000
+MINING_DURATION = 13 * 30 * 24 * 60 * 60  # 13 mois en secondes
+START_TIME = time.time()
+regen_factor = 1
+
+def mining_reward(time_elapsed):
+    """Rendement exponentiel du minage"""
+    base_reward = 10  # 10 tokens par bloc
+    return base_reward * math.exp(time_elapsed / 10**6)  # Facteur e^(x)
+
+def mine_block(miner, blockchain):
+    """Simulation d’un bloc miné"""
+    current_time = time.time()
+    time_elapsed = current_time - START_TIME
+    reward = mining_reward(time_elapsed)
+    
+    if blockchain["total_mined"] + reward <= TOTAL_SUPPLY:
+        blockchain["balances"][miner] += reward
+        blockchain["total_mined"] += reward
+        print(f"✅ {miner} a miné {reward:.2f} COSMO")
+    else:
+        print("⚠️ Minage terminé, plus de tokens disponibles")
+
+# Simulation de minage sur 13 mois
+blockchain = {"balances": {}, "total_mined": 0}
+for i in range(400):  # Simulation de 400 blocs
+    mine_block("Miner1", blockchain)
+    time.sleep(5)  # Pause pour simuler le temps réel
+
+print(f"\n🔥 Total miné : {blockchain['total_mined']:.2f} COSMO")
