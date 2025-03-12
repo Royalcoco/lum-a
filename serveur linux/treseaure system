@@ -1,0 +1,45 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+contract CosmoCoin is ERC20, Ownable {
+    uint256 public constant MAX_SUPPLY = 19000000 * 10**18; // 19M unités
+    uint256 public constant MINING_DURATION = 13 * 30 days; // 13 mois
+    uint256 public startTime;
+    uint256 public regenFactor; // Facteur de régénération exponentielle
+
+    mapping(address => uint256) public lastClaimTime;
+
+    constructor() ERC20("CosmoCoin", "COSMO") {
+        startTime = block.timestamp;
+        regenFactor = 1; // Initialisé à 1, il augmentera avec e^x
+        _mint(msg.sender, MAX_SUPPLY / 10); // 10% du total est créé initialement
+    }
+
+    function mineTokens() public {
+        require(block.timestamp <= startTime + MINING_DURATION, "Mining finished");
+        
+        uint256 timeElapsed = block.timestamp - lastClaimTime[msg.sender];
+        require(timeElapsed > 1 days, "Can only mine once per day");
+
+        uint256 amount = calculateMiningReward(timeElapsed);
+        require(totalSupply() + amount <= MAX_SUPPLY, "Exceeds max supply");
+
+        lastClaimTime[msg.sender] = block.timestamp;
+        _mint(msg.sender, amount);
+    }
+
+    function calculateMiningReward(uint256 timeElapsed) public view returns (uint256) {
+        // Modèle exponentiel e^(x) ajusté pour le mining
+        uint256 exponentFactor = regenFactor ** timeElapsed;
+        uint256 baseReward = 10 * 10**18; // Base de 10 tokens par jour
+        return baseReward * exponentFactor / 10**6; // Ajustement pour limiter l'inflation
+    }
+
+    function adjustRegenFactor() external onlyOwner {
+        // Mise à jour du facteur de régénération toutes les semaines
+        regenFactor = regenFactor * 110 / 100; // Augmente de 10% chaque cycle
+    }
+}
