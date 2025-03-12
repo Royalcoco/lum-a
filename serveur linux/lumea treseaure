@@ -55,3 +55,27 @@ export const mineTokens = async (account) => {
 export const registerMiner = async (account, tokenId) => {
   await cosmoCoinContract.methods.registerMiner(tokenId).send({ from: account });
 };
+import Web3 from "web3";
+import miningPassABI from "./MiningPassABI.json";
+import cosmoCoinABI from "./CosmoCoinABI.json";
+
+const web3 = new Web3(window.ethereum);
+
+const miningPassAddress = "0xMiningPassContract";
+const cosmoCoinAddress = "0xCosmoCoinContract";
+
+const miningPassContract = new web3.eth.Contract(miningPassABI, miningPassAddress);
+const cosmoCoinContract = new web3.eth.Contract(cosmoCoinABI, cosmoCoinAddress);
+
+export const setNFTAsAvatar = async (account, tokenId, platformAddress) => {
+  await miningPassContract.methods.setAsAvatar(tokenId, platformAddress).send({ from: account });
+};
+
+export const getMiningBoost = async (tokenId) => {
+  const boost = await miningPassContract.methods.getBoost(tokenId).call();
+  return boost;
+};
+
+export const mineTokens = async (account) => {
+  await cosmoCoinContract.methods.mineTokens().send({ from: account });
+};
