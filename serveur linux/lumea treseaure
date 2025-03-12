@@ -79,3 +79,117 @@ export const getMiningBoost = async (tokenId) => {
 export const mineTokens = async (account) => {
   await cosmoCoinContract.methods.mineTokens().send({ from: account });
 };
+require('dotenv').config();
+const express = require('express');
+const axios = require('axios');
+const Web3 = require('web3');
+
+const app = express();
+app.use(express.json());
+
+const NFT_CONTRACT = "0xVotreSmartContract";
+const provider = new Web3.providers.HttpProvider(process.env.INFURA_URL);
+const web3 = new Web3(provider);
+const nftContract = new web3.eth.Contract(require('./MiningPassABI.json'), NFT_CONTRACT);
+
+const TWITTER_BEARER_TOKEN = process.env.TWITTER_BEARER_TOKEN;
+const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
+
+// Vérifie l'avatar sur Twitter
+app.post('/verify/twitter', async (req, res) => {
+    const { twitterHandle, walletAddress } = req.body;
+
+    try {
+        const response = await axios.get(`https://api.twitter.com/2/users/by/username/${twitterHandle}?user.fields=profile_image_url`, {
+            headers: { "Authorization": `Bearer ${TWITTER_BEARER_TOKEN}` }
+        });
+
+        const avatarUrl = response.data.data.profile_image_url;
+        const tokenId = await checkNFTAvatar(walletAddress, avatarUrl);
+
+        if (tokenId !== null) {
+            await nftContract.methods.verifyAvatar(tokenId, "Twitter").send({ from: walletAddress });
+            res.json({ success: true, message: "Avatar vérifié sur Twitter !" });
+        } else {
+            res.status(400).json({ success: false, message: "Aucun NFT correspondant à l'avatar." });
+        }
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Erreur Twitter API", error: error.message });
+    }
+});
+
+// Vérifie l'avatar sur Discord
+app.post('/verify/discord', async (req, res) => {
+    const { discordId, walletAddress } = req.body;
+
+    try {
+        const response = await axios.get(`https://discord.com/api/users/${discordId}`, {
+            headers: { "Authorization": `Bot ${DISCORD_BOT_TOKEN}` }
+        });
+
+        const avatarHash = response.data.avatar;
+        const avatarUrl = `https://cdn.discordapp.com/avatars/${discordId}/${avatarHash}.png`;
+
+        const tokenId = await checkNFTAvatar(walletAddress, avatarUrl);
+
+        if (tokenId !== null) {
+            await nftContract.methods.verifyAvatar(tokenId, "Discord").send({ from: walletAddress });
+            res.json({ success: true, message: "Avatar vérifié sur Discord !" });
+        } else {
+            res.status(400).json({ success: false, message: "Aucun NFT correspondant à l'avatar." });
+        }
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Erreur Discord API", error: error.message });
+    }
+});
+
+// Vérifie si l'avatar correspond à un NFT
+async function checkNFTAvatar(walletAddress, avatarUrl) {
+    const tokenIds = await nftContract.methods.tokensOfOwner(walletAddress).call();
+
+    for (let tokenId of tokenIds) {
+        const nftMetadata = await axios.get(`https://api.opensea.io/api/v1/asset/${NFT_CONTRACT}/${tokenId}/`);
+        if (nftMetadata.data.image_url === avatarUrl) {
+            return tokenId;
+        }
+    }
+    return null;
+}
+
+app.listen(3000, () => console.log('🚀 Serveur en ligne sur http://localhost:3000'));
+import { useState } from 'react';
+
+const VerifyAvatar = ({ walletAddress }) => {
+    const [status, setStatus] = useState("");
+
+    const verifyTwitter = async (twitterHandle) => {
+        const res = await fetch("/verify/twitter", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ twitterHandle, walletAddress })
+        });
+        const data = await res.json();
+        setStatus(data.message);
+    };
+
+    const verifyDiscord = async (discordId) => {
+        const res = await fetch("/verify/discord", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ discordId, walletAddress })
+        });
+        const data = await res.json();
+        setStatus(data.message);
+    };
+
+    return (
+        <div>
+            <h3>Vérifiez votre avatar NFT</h3>
+            <input type="text" placeholder="Twitter Handle" onBlur={(e) => verifyTwitter(e.target.value)} />
+            <input type="text" placeholder="Discord ID" onBlur={(e) => verifyDiscord(e.target.value)} />
+            <p>{status}</p>
+        </div>
+    );
+};
+
+export default VerifyAvatar;
