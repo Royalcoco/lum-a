@@ -112,3 +112,53 @@ contract MiningPassNFT is ERC721Enumerable, Ownable {
         verifiedPlatforms[platform] = true;
     }
 }
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+interface IMiningPassNFT {
+    function getBoost(uint256 tokenId) external view returns (uint256);
+}
+
+contract CosmoCoin is ERC20, Ownable {
+    uint256 public constant MAX_SUPPLY = 19000000 * 10**18; // 19M unités
+    uint256 public constant MINING_DURATION = 13 * 30 days; // 13 mois
+    uint256 public startTime;
+    IMiningPassNFT public miningPass;
+    mapping(address => uint256) public lastClaimTime;
+    mapping(address => uint256) public minerNFT;
+
+    constructor(address _miningPassNFT) ERC20("CosmoCoin", "COSMO") {
+        startTime = block.timestamp;
+        miningPass = IMiningPassNFT(_miningPassNFT);
+    }
+
+    function registerMiner(uint256 tokenId) external {
+        require(minerNFT[msg.sender] == 0, "Already registered");
+        minerNFT[msg.sender] = tokenId;
+    }
+
+    function mineTokens() public {
+        require(block.timestamp <= startTime + MINING_DURATION, "Mining finished");
+        require(minerNFT[msg.sender] > 0, "No NFT registered for mining");
+
+        uint256 tokenId = minerNFT[msg.sender];
+        uint256 boost = miningPass.getBoost(tokenId); // Prend en compte le bonus Avatar
+        uint256 timeElapsed = block.timestamp - lastClaimTime[msg.sender];
+
+        require(timeElapsed > 1 days, "Can only mine once per day");
+
+        uint256 amount = calculateMiningReward(timeElapsed, boost);
+        require(totalSupply() + amount <= MAX_SUPPLY, "Exceeds max supply");
+
+        lastClaimTime[msg.sender] = block.timestamp;
+        _mint(msg.sender, amount);
+    }
+
+    function calculateMiningReward(uint256 timeElapsed, uint256 boost) public view returns (uint256) {
+        uint256 baseReward = 10 * 10**18;
+        return baseReward * boost;
+    }
+}
