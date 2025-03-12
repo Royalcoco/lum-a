@@ -72,3 +72,43 @@ contract CosmoCoin is ERC20, Ownable {
         return baseReward * boost;
     }
 }
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+contract MiningPassNFT is ERC721Enumerable, Ownable {
+    uint256 public nextTokenId;
+    mapping(uint256 => uint256) public miningBoost;
+    mapping(uint256 => bool) public isUsedAsAvatar;
+    mapping(address => bool) public verifiedPlatforms;
+
+    constructor() ERC721("MiningPass", "MPASS") {}
+
+    function mintMiningPass(address to, uint256 boost) external onlyOwner {
+        require(boost >= 1 && boost <= 3, "Boost must be 1x, 2x or 3x");
+        uint256 tokenId = nextTokenId;
+        _safeMint(to, tokenId);
+        miningBoost[tokenId] = boost;
+        nextTokenId++;
+    }
+
+    function setAsAvatar(uint256 tokenId, address platform) external {
+        require(ownerOf(tokenId) == msg.sender, "You must own the NFT");
+        require(verifiedPlatforms[platform], "Platform not verified");
+        isUsedAsAvatar[tokenId] = true;
+    }
+
+    function getBoost(uint256 tokenId) external view returns (uint256) {
+        uint256 baseBoost = miningBoost[tokenId];
+        if (isUsedAsAvatar[tokenId]) {
+            return baseBoost * 150 / 100; // +50% de boost
+        }
+        return baseBoost;
+    }
+
+    function addVerifiedPlatform(address platform) external onlyOwner {
+        verifiedPlatforms[platform] = true;
+    }
+}
