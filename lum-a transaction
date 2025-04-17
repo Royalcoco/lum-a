@@ -1,0 +1,824 @@
+import random
+import time
+import threading
+
+# Mocked resources
+class SystemResource:
+    def __init__(self, id, type='GPU'):
+        self.id = id
+        self.type = type
+        self.available = True
+
+    def send_data(self, data):
+        if self.available:
+            print(f"[Resource {self.id}] Processing data: {data[:10]}...")
+            return True
+        return False
+
+    def fail(self):
+        self.available = False
+
+    def recover(self):
+        self.available = True
+
+
+class AdaptiveSystem:
+    def __init__(self):
+        self.resources = [SystemResource(i) for i in range(4)]  # 4 access points
+        self.loop_counter = 0
+        self.max_retries = 3
+        self.failed_loops = 0
+        self.sleep_state = False
+
+    def send_signal(self, signal):
+        print(f"[Signal] Sending: {signal}")
+        for r in self.resources:
+            if not r.send_data(signal):
+                print(f"[Warning] Resource {r.id} failed. Attempting recovery.")
+                self.recover_resource(r)
+
+    def recover_resource(self, resource):
+        # Simulate recovery
+        time.sleep(0.2)
+        resource.recover()
+        print(f"[Recovery] Resource {resource.id} recovered.")
+
+    def garbled_data_handler(self, data):
+        # Simulate AI reinterpretation of illegible data
+        return "cleaned(" + data + ")"
+
+    def loop_cycle(self):
+        while True:
+            self.loop_counter += 1
+            raw_data = f"data_{random.randint(1000,9999)}"
+            data = self.garbled_data_handler(raw_data)
+
+            if self.loop_counter > 100:
+                print("[Loop Error] Infinite pattern detected. Resetting.")
+                self.failed_loops += 1
+                self.loop_counter = 0
+                self.sleep_cycle()
+                continue
+
+            self.send_signal(data)
+            time.sleep(1)
+
+    def sleep_cycle(self):
+        print("[System] Entering sleep mode.")
+        self.sleep_state = True
+        time.sleep(2)  # Simulate sleep
+        self.sleep_state = False
+        print("[System] Waking up. Restarting loop.")
+
+    def start(self):
+        print("[System] Initializing...")
+        loop_thread = threading.Thread(target=self.loop_cycle)
+        loop_thread.daemon = True
+        loop_thread.start()
+
+
+if __name__ == '__main__':
+    system = AdaptiveSystem()
+    system.start()
+
+    # Keep main thread alive
+    try:
+        while True:
+            time.sleep(0.5)
+    except KeyboardInterrupt:
+        print("[System] Shutdown requested.")
+import hashlib
+import random
+import time
+import threading
+
+# ===================== SYSTEM SETUP =====================
+class SystemResource:
+    def __init__(self, id, type='GPU'):
+        self.id = id
+        self.type = type
+        self.available = True
+
+    def send_data(self, data):
+        if self.available:
+            print(f"[Resource {self.id}] Processing data: {data[:10]}...")
+            return True
+        return False
+
+    def fail(self):
+        self.available = False
+
+    def recover(self):
+        self.available = True
+
+# ===================== CRYPTO-SECURE LEDGER =====================
+class CryptoKeySystem:
+    def __init__(self):
+        self.authorized_keys = {}
+        self.threshold = 0.75  # 75% approval required to transmit a secure key
+
+    def generate_key(self):
+        key = hashlib.sha256(str(random.random()).encode()).hexdigest()
+        self.authorized_keys[key] = {
+            'approvals': set(),
+            'used': False
+        }
+        return key
+
+    def authorize_key(self, key, user_id):
+        if key in self.authorized_keys and not self.authorized_keys[key]['used']:
+            self.authorized_keys[key]['approvals'].add(user_id)
+            return True
+        return False
+
+    def is_key_valid(self, key, total_users):
+        if key not in self.authorized_keys or self.authorized_keys[key]['used']:
+            return False
+        approval_ratio = len(self.authorized_keys[key]['approvals']) / total_users
+        return approval_ratio >= self.threshold
+
+    def transmit_key(self, key):
+        if key in self.authorized_keys:
+            self.authorized_keys[key]['used'] = True
+            print(f"[SECURE] Key {key[:8]} transmitted to protocol.")
+
+# ===================== MINING SYSTEM =====================
+class MiningEngine:
+    def __init__(self):
+        self.total_mined = 0
+
+    def mine(self):
+        # Simulate mining difficulty and performance
+        base_yield = random.uniform(0.03, 0.21)  # 3% to 21% simulated yield
+        block_value = random.randint(100, 1000)  # Arbitrary block value
+        earnings = block_value * base_yield
+        self.total_mined += earnings
+        print(f"[MINING] Mined block worth {block_value}. Yield: {base_yield*100:.2f}%. Earnings: {earnings:.2f}. Total: {self.total_mined:.2f}")
+        return earnings
+
+# ===================== ADAPTIVE SYSTEM =====================
+class AdaptiveSystem:
+    def __init__(self):
+        self.resources = [SystemResource(i) for i in range(4)]
+        self.loop_counter = 0
+        self.max_retries = 3
+        self.failed_loops = 0
+        self.sleep_state = False
+        self.crypto = CryptoKeySystem()
+        self.mining = MiningEngine()
+        self.total_users = 5  # Simulated system user count
+
+    def send_signal(self, signal):
+        print(f"[Signal] Sending: {signal}")
+        for r in self.resources:
+            if not r.send_data(signal):
+                print(f"[Warning] Resource {r.id} failed. Attempting recovery.")
+                self.recover_resource(r)
+
+    def recover_resource(self, resource):
+        time.sleep(0.2)
+        resource.recover()
+        print(f"[Recovery] Resource {resource.id} recovered.")
+
+    def garbled_data_handler(self, data):
+        return "cleaned(" + data + ")"
+
+    def secure_key_protocol(self):
+        key = self.crypto.generate_key()
+        print(f"[SECURE] New key generated: {key[:8]}...")
+        for user_id in range(self.total_users):
+            if random.random() > 0.25:  # 75% chance to approve
+                self.crypto.authorize_key(key, f'user_{user_id}')
+        if self.crypto.is_key_valid(key, self.total_users):
+            self.crypto.transmit_key(key)
+        else:
+            print("[SECURE] Key authorization failed. Insufficient consensus.")
+
+    def loop_cycle(self):
+        while True:
+            self.loop_counter += 1
+            raw_data = f"data_{random.randint(1000,9999)}"
+            data = self.garbled_data_handler(raw_data)
+
+            if self.loop_counter % 10 == 0:
+                self.secure_key_protocol()
+
+            if self.loop_counter % 15 == 0:
+                self.mining.mine()
+
+            if self.loop_counter > 100:
+                print("[Loop Error] Infinite pattern detected. Resetting.")
+                self.failed_loops += 1
+                self.loop_counter = 0
+                self.sleep_cycle()
+                continue
+
+            self.send_signal(data)
+            time.sleep(1)
+
+    def sleep_cycle(self):
+        print("[System] Entering sleep mode.")
+        self.sleep_state = True
+        time.sleep(2)
+        self.sleep_state = False
+        print("[System] Waking up. Restarting loop.")
+
+    def start(self):
+        print("[System] Initializing...")
+        loop_thread = threading.Thread(target=self.loop_cycle)
+        loop_thread.daemon = True
+        loop_thread.start()
+
+# ===================== MAIN EXECUTION =====================
+if __name__ == '__main__':
+    system = AdaptiveSystem()
+    system.start()
+
+    try:
+        while True:
+            time.sleep(0.5)
+    except KeyboardInterrupt:
+        print("[System] Shutdown requested.")
+import hashlib
+import random
+import time
+import threading
+
+# ===================== SYSTEM SETUP =====================
+class SystemResource:
+    def __init__(self, id, type='GPU'):
+        self.id = id
+        self.type = type
+        self.available = True
+
+    def send_data(self, data):
+        if self.available:
+            print(f"[Resource {self.id}] Processing data: {data[:10]}...")
+            return True
+        return False
+
+    def fail(self):
+        self.available = False
+
+    def recover(self):
+        self.available = True
+
+# ===================== CRYPTO-SECURE LEDGER =====================
+class CryptoKeySystem:
+    def __init__(self):
+        self.authorized_keys = {}
+        self.threshold = 0.75
+        self.temporal_keys = {}
+
+    def generate_key(self):
+        key = hashlib.sha256(str(random.random()).encode()).hexdigest()
+        expiration = time.time() + random.randint(30, 60)  # Keys expire in 30-60s
+        self.authorized_keys[key] = {
+            'approvals': set(),
+            'used': False,
+            'expiration': expiration,
+            'property': 'default'
+        }
+        return key
+
+    def authorize_key(self, key, user_id):
+        if key in self.authorized_keys and not self.authorized_keys[key]['used']:
+            self.authorized_keys[key]['approvals'].add(user_id)
+            return True
+        return False
+
+    def is_key_valid(self, key, total_users):
+        if key not in self.authorized_keys or self.authorized_keys[key]['used']:
+            return False
+        if time.time() > self.authorized_keys[key]['expiration']:
+            print(f"[SECURE] Key {key[:8]} expired.")
+            return False
+        approval_ratio = len(self.authorized_keys[key]['approvals']) / total_users
+        return approval_ratio >= self.threshold
+
+    def transmit_key(self, key, master_node):
+        if key in self.authorized_keys:
+            self.authorized_keys[key]['used'] = True
+            prop = self.authorized_keys[key]['property']
+            print(f"[SECURE] Key {key[:8]} transmitted to master {master_node} with property '{prop}'.")
+
+    def assign_property(self, key, new_property):
+        if key in self.authorized_keys:
+            self.authorized_keys[key]['property'] = new_property
+
+# ===================== MINING SYSTEM =====================
+class MiningEngine:
+    def __init__(self):
+        self.total_mined = 0
+
+    def mine(self):
+        base_yield = random.uniform(0.03, 0.21)
+        block_value = random.randint(100, 1000)
+        earnings = block_value * base_yield
+        self.total_mined += earnings
+        print(f"[MINING] Mined block worth {block_value}. Yield: {base_yield*100:.2f}%. Earnings: {earnings:.2f}. Total: {self.total_mined:.2f}")
+        return earnings
+
+# ===================== ADAPTIVE SYSTEM =====================
+class AdaptiveSystem:
+    def __init__(self):
+        self.resources = [SystemResource(i) for i in range(4)]
+        self.loop_counter = 0
+        self.max_retries = 3
+        self.failed_loops = 0
+        self.sleep_state = False
+        self.crypto = CryptoKeySystem()
+        self.mining = MiningEngine()
+        self.total_users = 5
+        self.master_nodes = ['Alpha', 'Beta', 'Gamma']
+
+    def send_signal(self, signal):
+        print(f"[Signal] Sending: {signal}")
+        for r in self.resources:
+            if not r.send_data(signal):
+                print(f"[Warning] Resource {r.id} failed. Attempting recovery.")
+                self.recover_resource(r)
+
+    def recover_resource(self, resource):
+        time.sleep(0.2)
+        resource.recover()
+        print(f"[Recovery] Resource {resource.id} recovered.")
+
+    def garbled_data_handler(self, data):
+        return "cleaned(" + data + ")"
+
+    def secure_key_protocol(self):
+        key = self.crypto.generate_key()
+        print(f"[SECURE] New key generated: {key[:8]}...")
+
+        # Distribute approval
+        for user_id in range(self.total_users):
+            if random.random() > 0.25:
+                self.crypto.authorize_key(key, f'user_{user_id}')
+
+        # Property adaptation based on cycle
+        new_prop = 'customized' if self.loop_counter % 20 == 0 else 'default'
+        self.crypto.assign_property(key, new_prop)
+
+        # Randomly pick master node
+        master = random.choice(self.master_nodes)
+
+        if self.crypto.is_key_valid(key, self.total_users):
+            self.crypto.transmit_key(key, master)
+        else:
+            print("[SECURE] Key authorization failed or expired.")
+
+    def loop_cycle(self):
+        while True:
+            self.loop_counter += 1
+            raw_data = f"data_{random.randint(1000,9999)}"
+            data = self.garbled_data_handler(raw_data)
+
+            if self.loop_counter % 10 == 0:
+                self.secure_key_protocol()
+
+            if self.loop_counter % 15 == 0:
+                self.mining.mine()
+
+            if self.loop_counter > 100:
+                print("[Loop Error] Infinite pattern detected. Resetting.")
+                self.failed_loops += 1
+                self.loop_counter = 0
+                self.sleep_cycle()
+                continue
+
+            self.send_signal(data)
+            time.sleep(1)
+
+    def sleep_cycle(self):
+        print("[System] Entering sleep mode.")
+        self.sleep_state = True
+        time.sleep(2)
+        self.sleep_state = False
+        print("[System] Waking up. Restarting loop.")
+
+    def start(self):
+        print("[System] Initializing...")
+        loop_thread = threading.Thread(target=self.loop_cycle)
+        loop_thread.daemon = True
+        loop_thread.start()
+
+# ===================== MAIN EXECUTION =====================
+if __name__ == '__main__':
+    system = AdaptiveSystem()
+    system.start()
+
+    try:
+        while True:
+            time.sleep(0.5)
+    except KeyboardInterrupt:
+        print("[System] Shutdown requested.")
+--------
+import hashlib
+import random
+import time
+import threading
+import os
+import json
+import socket
+from datetime import datetime
+import pytz
+
+# ===================== SYSTEM SETUP =====================
+class SystemResource:
+    def __init__(self, id, type='GPU'):
+        self.id = id
+        self.type = type
+        self.available = True
+
+    def send_data(self, data):
+        if self.available:
+            print(f"[Resource {self.id}] Processing data: {data[:10]}...")
+            return True
+        return False
+
+    def fail(self):
+        self.available = False
+
+    def recover(self):
+        self.available = True
+
+# ===================== CRYPTO WALLET =====================
+class Wallet:
+    def __init__(self, path='wallet_data/wallet.json'):
+        self.path = path
+        self.balance = 0
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        if os.path.exists(self.path):
+            with open(self.path, 'r') as f:
+                data = json.load(f)
+                self.balance = data.get('balance', 0)
+        else:
+            self.save()
+
+    def deposit(self, amount):
+        self.balance += amount
+        self.save()
+        print(f"[WALLET] Deposited {amount:.2f}. New balance: {self.balance:.2f}")
+
+    def save(self):
+        with open(self.path, 'w') as f:
+            json.dump({'balance': self.balance}, f)
+
+# ===================== CRYPTO-SECURE LEDGER =====================
+class CryptoKeySystem:
+    def __init__(self):
+        self.authorized_keys = {}
+        self.threshold = 0.75
+        self.temporal_keys = {}
+
+    def get_geo_signature(self):
+        ip = socket.gethostbyname(socket.gethostname())
+        now = datetime.now(pytz.utc)
+        signature = f"{ip}-{now.isoformat()}"
+        return hashlib.sha256(signature.encode()).hexdigest()
+
+    def generate_key(self):
+        geo_signature = self.get_geo_signature()
+        key = hashlib.sha256((str(random.random()) + geo_signature).encode()).hexdigest()
+        expiration = time.time() + random.randint(30, 60)
+        self.authorized_keys[key] = {
+            'approvals': set(),
+            'used': False,
+            'expiration': expiration,
+            'property': 'default',
+            'geo_signature': geo_signature
+        }
+        return key
+
+    def authorize_key(self, key, user_id):
+        if key in self.authorized_keys and not self.authorized_keys[key]['used']:
+            self.authorized_keys[key]['approvals'].add(user_id)
+            return True
+        return False
+
+    def is_key_valid(self, key, total_users):
+        if key not in self.authorized_keys or self.authorized_keys[key]['used']:
+            return False
+        if time.time() > self.authorized_keys[key]['expiration']:
+            print(f"[SECURE] Key {key[:8]} expired.")
+            return False
+        approval_ratio = len(self.authorized_keys[key]['approvals']) / total_users
+        return approval_ratio >= self.threshold
+
+    def transmit_key(self, key, master_node):
+        if key in self.authorized_keys:
+            self.authorized_keys[key]['used'] = True
+            prop = self.authorized_keys[key]['property']
+            geo = self.authorized_keys[key]['geo_signature']
+            print(f"[SECURE] Key {key[:8]} transmitted to master {master_node} with property '{prop}' and geo '{geo[:12]}'.")
+
+    def assign_property(self, key, new_property):
+        if key in self.authorized_keys:
+            self.authorized_keys[key]['property'] = new_property
+
+# ===================== MINING SYSTEM =====================
+class MiningEngine:
+    def __init__(self, wallet):
+        self.total_mined = 0
+        self.wallet = wallet
+
+    def mine(self):
+        base_yield = random.uniform(0.03, 0.21)
+        block_value = random.randint(100, 1000)
+        earnings = block_value * base_yield
+        self.total_mined += earnings
+        print(f"[MINING] Mined block worth {block_value}. Yield: {base_yield*100:.2f}%. Earnings: {earnings:.2f}. Total: {self.total_mined:.2f}")
+        self.wallet.deposit(earnings)
+        return earnings
+
+# ===================== ADAPTIVE SYSTEM =====================
+class AdaptiveSystem:
+    def __init__(self):
+        self.resources = [SystemResource(i) for i in range(4)]
+        self.loop_counter = 0
+        self.max_retries = 3
+        self.failed_loops = 0
+        self.sleep_state = False
+        self.wallet = Wallet()
+        self.crypto = CryptoKeySystem()
+        self.mining = MiningEngine(self.wallet)
+        self.total_users = 5
+        self.master_nodes = ['Alpha', 'Beta', 'Gamma']
+
+    def send_signal(self, signal):
+        print(f"[Signal] Sending: {signal}")
+        for r in self.resources:
+            if not r.send_data(signal):
+                print(f"[Warning] Resource {r.id} failed. Attempting recovery.")
+                self.recover_resource(r)
+
+    def recover_resource(self, resource):
+        time.sleep(0.2)
+        resource.recover()
+        print(f"[Recovery] Resource {resource.id} recovered.")
+
+    def garbled_data_handler(self, data):
+        return "cleaned(" + data + ")"
+
+    def secure_key_protocol(self):
+        key = self.crypto.generate_key()
+        print(f"[SECURE] New key generated: {key[:8]}...")
+
+        for user_id in range(self.total_users):
+            if random.random() > 0.25:
+                self.crypto.authorize_key(key, f'user_{user_id}')
+
+        new_prop = 'customized' if self.loop_counter % 20 == 0 else 'default'
+        self.crypto.assign_property(key, new_prop)
+
+        master = random.choice(self.master_nodes)
+
+        if self.crypto.is_key_valid(key, self.total_users):
+            self.crypto.transmit_key(key, master)
+        else:
+            print("[SECURE] Key authorization failed or expired.")
+
+    def loop_cycle(self):
+        while True:
+            self.loop_counter += 1
+            raw_data = f"data_{random.randint(1000,9999)}"
+            data = self.garbled_data_handler(raw_data)
+
+            if self.loop_counter % 10 == 0:
+                self.secure_key_protocol()
+
+            if self.loop_counter % 15 == 0:
+                self.mining.mine()
+
+            if self.loop_counter > 100:
+                print("[Loop Error] Infinite pattern detected. Resetting.")
+                self.failed_loops += 1
+                self.loop_counter = 0
+                self.sleep_cycle()
+                continue
+
+            self.send_signal(data)
+            time.sleep(1)
+
+    def sleep_cycle(self):
+        print("[System] Entering sleep mode.")
+        self.sleep_state = True
+        time.sleep(2)
+        self.sleep_state = False
+        print("[System] Waking up. Restarting loop.")
+
+    def start(self):
+        print("[System] Initializing...")
+        loop_thread = threading.Thread(target=self.loop_cycle)
+        loop_thread.daemon = True
+        loop_thread.start()
+
+# ===================== MAIN EXECUTION =====================
+if __name__ == '__main__':
+    system = AdaptiveSystem()
+    system.start()
+
+    try:
+        while True:
+            time.sleep(0.5)
+    except KeyboardInterrupt:
+        print("[System] Shutdown requested.")
+import hashlib
+import random
+import time
+import threading
+import os
+import json
+
+# ===================== SYSTEM SETUP =====================
+class SystemResource:
+    def __init__(self, id, type='GPU'):
+        self.id = id
+        self.type = type
+        self.available = True
+
+    def send_data(self, data):
+        if self.available:
+            print(f"[Resource {self.id}] Processing data: {data[:10]}...")
+            return True
+        return False
+
+    def fail(self):
+        self.available = False
+
+    def recover(self):
+        self.available = True
+
+# ===================== CRYPTO WALLET =====================
+class Wallet:
+    def __init__(self, path='wallet_data/wallet.json'):
+        self.path = path
+        self.balance = 0
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        if os.path.exists(self.path):
+            with open(self.path, 'r') as f:
+                data = json.load(f)
+                self.balance = data.get('balance', 0)
+        else:
+            self.save()
+
+    def deposit(self, amount):
+        self.balance += amount
+        self.save()
+        print(f"[WALLET] Deposited {amount:.2f}. New balance: {self.balance:.2f}")
+
+    def save(self):
+        with open(self.path, 'w') as f:
+            json.dump({'balance': self.balance}, f)
+
+# ===================== CRYPTO-SECURE LEDGER =====================
+class CryptoKeySystem:
+    def __init__(self):
+        self.authorized_keys = {}
+        self.threshold = 0.75
+        self.temporal_keys = {}
+
+    def generate_key(self):
+        key = hashlib.sha256(str(random.random()).encode()).hexdigest()
+        expiration = time.time() + random.randint(30, 60)
+        self.authorized_keys[key] = {
+            'approvals': set(),
+            'used': False,
+            'expiration': expiration,
+            'property': 'default'
+        }
+        return key
+
+    def authorize_key(self, key, user_id):
+        if key in self.authorized_keys and not self.authorized_keys[key]['used']:
+            self.authorized_keys[key]['approvals'].add(user_id)
+            return True
+        return False
+
+    def is_key_valid(self, key, total_users):
+        if key not in self.authorized_keys or self.authorized_keys[key]['used']:
+            return False
+        if time.time() > self.authorized_keys[key]['expiration']:
+            print(f"[SECURE] Key {key[:8]} expired.")
+            return False
+        approval_ratio = len(self.authorized_keys[key]['approvals']) / total_users
+        return approval_ratio >= self.threshold
+
+    def transmit_key(self, key, master_node):
+        if key in self.authorized_keys:
+            self.authorized_keys[key]['used'] = True
+            prop = self.authorized_keys[key]['property']
+            print(f"[SECURE] Key {key[:8]} transmitted to master {master_node} with property '{prop}'.")
+
+    def assign_property(self, key, new_property):
+        if key in self.authorized_keys:
+            self.authorized_keys[key]['property'] = new_property
+
+# ===================== MINING SYSTEM =====================
+class MiningEngine:
+    def __init__(self, wallet):
+        self.total_mined = 0
+        self.wallet = wallet
+
+    def mine(self):
+        base_yield = random.uniform(0.03, 0.21)
+        block_value = random.randint(100, 1000)
+        earnings = block_value * base_yield
+        self.total_mined += earnings
+        print(f"[MINING] Mined block worth {block_value}. Yield: {base_yield*100:.2f}%. Earnings: {earnings:.2f}. Total: {self.total_mined:.2f}")
+        self.wallet.deposit(earnings)
+        return earnings
+
+# ===================== ADAPTIVE SYSTEM =====================
+class AdaptiveSystem:
+    def __init__(self):
+        self.resources = [SystemResource(i) for i in range(4)]
+        self.loop_counter = 0
+        self.max_retries = 3
+        self.failed_loops = 0
+        self.sleep_state = False
+        self.wallet = Wallet()
+        self.crypto = CryptoKeySystem()
+        self.mining = MiningEngine(self.wallet)
+        self.total_users = 5
+        self.master_nodes = ['Alpha', 'Beta', 'Gamma']
+
+    def send_signal(self, signal):
+        print(f"[Signal] Sending: {signal}")
+        for r in self.resources:
+            if not r.send_data(signal):
+                print(f"[Warning] Resource {r.id} failed. Attempting recovery.")
+                self.recover_resource(r)
+
+    def recover_resource(self, resource):
+        time.sleep(0.2)
+        resource.recover()
+        print(f"[Recovery] Resource {resource.id} recovered.")
+
+    def garbled_data_handler(self, data):
+        return "cleaned(" + data + ")"
+
+    def secure_key_protocol(self):
+        key = self.crypto.generate_key()
+        print(f"[SECURE] New key generated: {key[:8]}...")
+
+        for user_id in range(self.total_users):
+            if random.random() > 0.25:
+                self.crypto.authorize_key(key, f'user_{user_id}')
+
+        new_prop = 'customized' if self.loop_counter % 20 == 0 else 'default'
+        self.crypto.assign_property(key, new_prop)
+
+        master = random.choice(self.master_nodes)
+
+        if self.crypto.is_key_valid(key, self.total_users):
+            self.crypto.transmit_key(key, master)
+        else:
+            print("[SECURE] Key authorization failed or expired.")
+
+    def loop_cycle(self):
+        while True:
+            self.loop_counter += 1
+            raw_data = f"data_{random.randint(1000,9999)}"
+            data = self.garbled_data_handler(raw_data)
+
+            if self.loop_counter % 10 == 0:
+                self.secure_key_protocol()
+
+            if self.loop_counter % 15 == 0:
+                self.mining.mine()
+
+            if self.loop_counter > 100:
+                print("[Loop Error] Infinite pattern detected. Resetting.")
+                self.failed_loops += 1
+                self.loop_counter = 0
+                self.sleep_cycle()
+                continue
+
+            self.send_signal(data)
+            time.sleep(1)
+
+    def sleep_cycle(self):
+        print("[System] Entering sleep mode.")
+        self.sleep_state = True
+        time.sleep(2)
+        self.sleep_state = False
+        print("[System] Waking up. Restarting loop.")
+
+    def start(self):
+        print("[System] Initializing...")
+        loop_thread = threading.Thread(target=self.loop_cycle)
+        loop_thread.daemon = True
+        loop_thread.start()
+
+# ===================== MAIN EXECUTION =====================
+if __name__ == '__main__':
+    system = AdaptiveSystem()
+    system.start()
+
+    try:
+        while True:
+            time.sleep(0.5)
+    except KeyboardInterrupt:
+        print("[System] Shutdown requested.")
